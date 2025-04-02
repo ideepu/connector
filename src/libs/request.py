@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 from src.config import config
-from src.exception import RequestFailedException, RequestMethodNotAllowed
+from src.exception import BaseRequestException, RequestMethodNotAllowed
 from src.libs.status_code import HttpStatusCode
 
 
@@ -48,7 +48,8 @@ class BaseRequest:
         method = method.lower()
         url = f'{self.request_base_url}{url_path}'
 
-        data = json.dumps(data)
+        if data:
+            data = json.dumps(data)
 
         # Shallow copy to avoid changing the params in the same context
         request_params = copy(self.request_params)
@@ -61,11 +62,18 @@ class BaseRequest:
         response: requests.Response = getattr(requests, method)(url=url, data=data, params=request_params, **kwargs)
 
         if self.request_log_response_codes and response.status_code in self.request_log_response_codes:
-            raise RequestFailedException(
-                f'Request failed: Request returned {response.status_code} with the text {response.text} against {method} {url}'
+            raise BaseRequestException(
+                message=f'Request failed: Request returned {response.status_code} with the text {response.text} against {method} {url}',
+                status_code=response.status_code,
             )
 
-        return response.json()
+        try:
+            return response.json()
+        except Exception as e:
+            raise BaseRequestException(
+                message=f'Failed to parse response: {response.text}',
+                status_code=response.status_code,
+            ) from e
 
-    def get(self, url, data=None, params=None, **kwargs):
-        return self._request(method='GET', url_path=url, data=data, params=params, **kwargs)
+    def get(self, url, params=None, **kwargs):
+        return self._request(method='GET', url_path=url, params=params, **kwargs)

@@ -6,6 +6,9 @@ class CoreException(Exception):
         self.message = message
         super().__init__(self.message)
 
+    def __str__(self):
+        return f'Exception: {self.message}'
+
 
 class BaseRequestException(CoreException):
     def __init__(self, message: str, status_code: int):
@@ -18,6 +21,5 @@ class RequestMethodNotAllowed(BaseRequestException):
         super().__init__(message, status_code=HttpStatusCode.METHOD_NOT_ALLOWED)
 
 
-class RequestFailedException(BaseRequestException):
-    def __init__(self, message: str):
-        super().__init__(message, status_code=HttpStatusCode.INTERNAL_SERVER_ERROR)
+class InvalidInputDataException(CoreException):
+    pass

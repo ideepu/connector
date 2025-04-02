@@ -16,15 +16,13 @@ class AccountList(BaseModelList[Account]):
     pass
 
 
-class AdAccount(BaseModel):
-    accounts_request: ClassVar = BaseRequest(
+class AccountManager(BaseModel):
+    request: ClassVar = BaseRequest(
         base_url=f'{config.BASE_URL}/demo',
         supported_methods=['GET'],
     )
 
-    ad_accounts: AccountList
-
     @classmethod
-    def get_ad_accounts(cls) -> 'AdAccount':
-        response = cls.accounts_request.get(url='/adAccounts')
-        return cls.model_validate(response)
+    def get_ad_accounts(cls) -> AccountList:
+        response = cls.request.get(url='/adAccounts')
+        return AccountList.model_validate(response['ad_accounts'])

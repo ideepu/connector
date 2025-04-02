@@ -7,5 +7,5 @@ if __name__ == '__main__':
     try:
         Connector().run()
     except CoreException as e:
-        print(e.message)
+        print(e)
         sys.exit(1)
