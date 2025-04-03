@@ -1,5 +1,6 @@
 import random
 from datetime import date, timedelta
+from typing import Any
 
 from src.account import Account, AccountList, AccountManager
 from src.advertisement import AdvertisementList, AdvertisementManager, AdvertisementSerialized
@@ -9,11 +10,22 @@ from src.exception import InvalidInputDataException
 class Connector:
     def __init__(self, account_id: str = None, start: date = None, end: date = None):
         self.account_id = account_id
-        self.start = start or date.today() - timedelta(days=random.randint(3, 6))
-        self.end = end or date.today() - timedelta(days=random.randint(0, 3))
+        # Choose random dates if not provided
+        # Start date is between 30 and 60 days ago
+        # End date is between now and 30 days ago
+        self.start = start or date.today() - timedelta(days=random.randint(30, 60))
+        self.end = end or date.today() - timedelta(days=random.randint(0, 30))
+        self._init_input()
         self.accounts: AccountList = self._get_accounts()
         self.account: Account = self._get_target_account()
         self.account_ads_data: AdvertisementList = self._get_account_ad_data()
+
+    def _init_input(self):
+        if not (isinstance(self.start, date) and isinstance(self.end, date)):
+            raise InvalidInputDataException('Start and end dates should be of type date')
+
+        if self.account_id and not isinstance(self.account_id, str):
+            raise InvalidInputDataException(f'Account ID {self.account_id} should be a string')
 
     def _get_accounts(self):
         accounts = AccountManager.get_ad_accounts()
@@ -35,19 +47,20 @@ class Connector:
             raise InvalidInputDataException('No ads data found')
         return ads_data
 
-    def _print(self, model: AccountList | AdvertisementSerialized, by_alias=True):
-        print(model.model_dump_json(indent=8, by_alias=by_alias))
-
-    def _serialize_ads(self):
-        aggregated_account_ads_data = self.account_ads_data.groupby_aggregate(
-            group_by=['date', 'campaign_id'],
-            aggregate_by=['impressions', 'clicks', 'conversions', 'cost'],
-        )
-        headers = list(aggregated_account_ads_data[0].model_dump(by_alias=True).keys())
-        aggregated_rows = [list(item.model_dump().values()) for item in aggregated_account_ads_data]
-        return AdvertisementSerialized(headers=headers, rows=aggregated_rows)
-
     def run(self):
         self._print(self.accounts)
         serialized_ads = self._serialize_ads()
         self._print(serialized_ads)
+
+    def _print(self, model: AccountList | AdvertisementSerialized, by_alias=True):
+        print(model.model_dump_json(indent=8, by_alias=by_alias))
+
+    def _serialize_ads(self) -> AdvertisementSerialized:
+        aggregated_account_ads_dict: list[Any] = self.account_ads_data.groupby_aggregate(
+            group_by=['date', 'campaign_id'],
+            aggregate_by=['impressions', 'clicks', 'conversions', 'cost'],
+        )
+        aggregated_account_ads_data = AdvertisementList(aggregated_account_ads_dict)
+        headers = list(aggregated_account_ads_data[0].model_dump(by_alias=True).keys())
+        aggregated_rows = [list(item.model_dump().values()) for item in aggregated_account_ads_data]
+        return AdvertisementSerialized(headers=headers, rows=aggregated_rows)

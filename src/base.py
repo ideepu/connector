@@ -30,8 +30,12 @@ class BaseModelList(PydanticRootModel[list[T]], Generic[T]):
 
     def get_by_key_value(self, key: Any, value: Any) -> T | None:
         for model in self:
-            if getattr(model, key) == value:
-                return model
+            try:
+                if getattr(model, key) == value:
+                    return model
+            except AttributeError:
+                pass
+        # If no match is found, just return None assuming the key is not present in the model
         return None
 
     def groupby_aggregate(
@@ -39,20 +43,20 @@ class BaseModelList(PydanticRootModel[list[T]], Generic[T]):
         group_by: Iterable[Any],
         aggregate_by: Iterable[Any],
         agg_func: Callable = sum,
-    ) -> BaseModelList[T]:
+    ) -> list[dict[Any, Any]]:
         grouped_data: dict[Any, dict[Any, list]] = defaultdict(lambda: {field: [] for field in aggregate_by})
         for entry in self:
             key = tuple(getattr(entry, field) for field in group_by)
             for field in aggregate_by:
                 grouped_data[key][field].append(getattr(entry, field))
 
-        aggregated_result: list[Any] = []
+        aggregated_result = []
         for key, fields in grouped_data.items():
             aggregated_result.append(
                 {**dict(zip(group_by, key)), **{field: agg_func(values) for field, values in fields.items()}}
             )
 
-        return self.__class__(aggregated_result)
+        return aggregated_result
 
 
 class BaseManager(BaseModel):
