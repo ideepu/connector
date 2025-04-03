@@ -20,17 +20,17 @@ git clone https://github.com/ideepu/connector.git
 cd connector
 ```
 
-Add required environment vars. The application reads from the environment variables exported or from the file `.env`
-
 Set up the local environment for the application. This will create a virtual environment and install the required dependencies:
 
 ```bash
-make setup
+make pre-setup  # Install and setup pyenv if doesn't exist
+make setup # Setup the project environment and dependencies
 ```
 
-To run the application
+The application requires specific environment variables to function properly. These must be either exported to the shell or written to a `.env` file in the project directory.
 
 ```bash
+echo "API_KEY=<Add your API key here>" > .env
 make run
 ```
 
