@@ -51,8 +51,6 @@ disable = '''
     too-few-public-methods
 '''
 
-[tool.pytest.ini_options]
-env = ['APP_ENVIRONMENT = unittest']
 
 [[tool.mypy.overrides]]
 check_untyped_defs = true
@@ -69,3 +67,4 @@ default = true
 [tool.poetry.group.dev.dependencies]
 ipython = "^9.0.2"
 types-requests = "^2.32.0.20250328"
+pytest = "^8.3.5"

@@ -51,7 +51,7 @@ class BaseRequest:
         if data:
             data = json.dumps(data)
 
-        # Shallow copy to avoid changing the params in the same context
+        # Create a shallow copy to prevent modifications to the original parameters
         request_params = copy(self.request_params)
         if params:
             request_params.update(params)
@@ -69,7 +69,7 @@ class BaseRequest:
 
         try:
             return response.json()
-        except Exception as e:
+        except json.JSONDecodeError as e:
             raise BaseRequestException(
                 message=f'Failed to parse response: {response.text}',
                 status_code=response.status_code,

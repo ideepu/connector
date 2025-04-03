@@ -31,7 +31,10 @@ class AdvertisementManager(BaseManager):
         if start > end:
             raise InvalidInputDataException(f'Start date {start} should be less than or equal to end date {end}')
 
-        response = cls.request.get(url=f'/getData/{acount_id}', params={'start': str(start), 'end': str(end)})
+        response = cls.request.get(
+            url=f'/getData/{acount_id}',
+            params={'start': start.isoformat(), 'end': end.isoformat()},
+        )
         if not (response and 'data' in response):
             raise InvalidInputDataException('Invalid response data')
 
