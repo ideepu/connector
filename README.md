@@ -20,6 +20,8 @@ git clone https://github.com/ideepu/connector.git
 cd connector
 ```
 
+Add required environment vars. The application reads from the environment variables exported or from the file `.env`
+
 Set up the local environment for the application. This will create a virtual environment and install the required dependencies:
 
 ```bash
