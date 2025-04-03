@@ -22,19 +22,21 @@ class TestConnector:
         account_id: Any = 2342
         start: Any = '2023-01-01'
         end: Any = '2023-01-31'
+        start_date = date.fromisoformat(start)
+        end_date = date.fromisoformat(end)
         with pytest.raises(InvalidInputDataException):
-            Connector(account_id=account_id)
+            Connector(account_id=account_id, start=start_date, end=end_date)
         with pytest.raises(InvalidInputDataException):
-            Connector(start=start)
+            Connector(start=start, end=end_date)
         with pytest.raises(InvalidInputDataException):
-            Connector(end=end)
+            Connector(start=start_date, end=end)
         mock_get_accounts.assert_not_called()
         mock_get_ad_data.assert_not_called()
         mock_get_accounts.return_value = []
 
         # No accounts
         with pytest.raises(InvalidInputDataException):
-            Connector()
+            Connector(start=start_date, end=end_date)
         mock_get_accounts.assert_called_once()
         mock_get_ad_data.assert_not_called()
         mock_get_accounts.reset_mock(return_value=True)
@@ -42,22 +44,20 @@ class TestConnector:
         # Incorrect account ID
         mock_get_accounts.return_value = mock_account_list
         with pytest.raises(InvalidInputDataException):
-            Connector(account_id='incorrect_account_id')
+            Connector(account_id='incorrect_account_id', start=start_date, end=end_date)
         mock_get_accounts.assert_called_once()
         mock_get_ad_data.assert_not_called()
         mock_get_accounts.reset_mock()
 
         # Ad data not founds
-        start = date.fromisoformat('2025-04-03')
-        end = date.fromisoformat('2025-04-03')
         mock_get_ad_data.return_value = []
         with pytest.raises(InvalidInputDataException):
-            Connector(account_id=mock_account_list[0].id, start=start, end=end)
+            Connector(account_id=mock_account_list[0].id, start=start_date, end=end_date)
         mock_get_accounts.assert_called_once()
         mock_get_ad_data.assert_called_once_with(
             mock_account_list[0].id,
-            start=start,
-            end=end,
+            start=start_date,
+            end=end_date,
         )
 
     @patch('src.account.AccountManager.get_ad_accounts')
@@ -70,9 +70,14 @@ class TestConnector:
         mock_advertisement_list: AdvertisementList,
     ):
         # Valid account ID
+        account_id = mock_account_list[0].id
+        start: Any = '2023-01-01'
+        end: Any = '2023-01-31'
+        start_date = date.fromisoformat(start)
+        end_date = date.fromisoformat(end)
         mock_get_accounts.return_value = mock_account_list
         mock_get_ad_data.return_value = mock_advertisement_list
-        connector = Connector(account_id=mock_account_list[0].id)
+        connector = Connector(account_id=account_id, start=start_date, end=end_date)
         assert connector.account_id == mock_account_list[0].id
         assert connector.accounts == mock_account_list
         assert connector.account == mock_account_list[0]
@@ -87,7 +92,7 @@ class TestConnector:
         mock_get_ad_data.reset_mock()
 
         # Valid random account
-        connector = Connector()
+        connector = Connector(start=start_date, end=end_date)
         assert connector.account in mock_account_list
         assert connector.account_ads_data == mock_advertisement_list
         mock_get_accounts.assert_called_once()
@@ -106,9 +111,13 @@ class TestConnector:
         mock_account_list: AccountList,
         mock_advertisement_list: AdvertisementList,
     ):
+        start: Any = '2023-01-01'
+        end: Any = '2023-01-31'
+        start_date = date.fromisoformat(start)
+        end_date = date.fromisoformat(end)
         mock_get_accounts.return_value = mock_account_list
         mock_get_ad_data.return_value = mock_advertisement_list
-        connector = Connector()
+        connector = Connector(start=start_date, end=end_date)
         serialized_ads = connector._serialize_ads()  # pylint: disable=protected-access
         assert isinstance(serialized_ads, AdvertisementSerialized)
         assert serialized_ads.headers == list(mock_advertisement_list[0].model_dump(by_alias=True).keys())

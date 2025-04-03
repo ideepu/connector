@@ -1,5 +1,5 @@
 import random
-from datetime import date, timedelta
+from datetime import date
 from typing import Any
 
 from src.account import Account, AccountList, AccountManager
@@ -8,13 +8,10 @@ from src.exception import InvalidInputDataException
 
 
 class Connector:
-    def __init__(self, account_id: str = None, start: date = None, end: date = None):
+    def __init__(self, start: date, end: date, account_id: str = None):
         self.account_id = account_id
-        # Choose random dates if not provided
-        # Start date is between 30 and 60 days ago
-        # End date is between now and 30 days ago
-        self.start = start or date.today() - timedelta(days=random.randint(30, 60))
-        self.end = end or date.today() - timedelta(days=random.randint(0, 30))
+        self.start = start
+        self.end = end
         self._init_input()
         self.accounts: AccountList = self._get_accounts()
         self.account: Account = self._get_target_account()
