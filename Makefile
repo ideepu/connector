@@ -2,9 +2,9 @@ SHELL := /bin/bash
 PY_VERSION := 3.12.4
 VENV_NAME := connector
 
-.PHONY: setup pre-setup setup-venv deps shell test run
+.PHONY: setup pre-setup setup-venv setup-poetry deps shell test run
 
-setup: setup-venv deps
+setup: setup-venv setup-poetry
 
 pre-setup:
 	@if ! command -v pyenv >/dev/null 2>&1; then \
@@ -32,11 +32,14 @@ setup-venv:
 	pyenv local ${VENV_NAME}
 	pyenv rehash
 
-deps:
+setup-poetry:
 	python -m pip install --upgrade pip
 	python -m pip install poetry
 	pyenv rehash
-	poetry sync
+
+deps:
+	source "$$(poetry env info --path)/bin/activate"
+	poetry install --no-root
 
 shell:
 	poetry run ipython

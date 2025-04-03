@@ -23,8 +23,9 @@ cd connector
 Set up the local environment for the application. This will create a virtual environment and install the required dependencies:
 
 ```bash
-make pre-setup  # Install and setup pyenv if doesn't exist
-make setup # Setup the project environment and dependencies
+make pre-setup       # Install and setup pyenv if doesn't exist
+make setup           # Setup the project virtual environment
+make deps            # Install project dependencies
 ```
 
 The application requires specific environment variables to function properly. These must be either exported to the shell or written to a `.env` file in the project directory.
