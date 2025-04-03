@@ -7,6 +7,7 @@ class Config(BaseSettings):
 
     API_KEY: SecretStr
     BASE_URL: str = Field(default='https://sultek.data-in-stage.funnel.io', max_length=2083)
+    BASE_URL_PREFIX: str = Field(default='/demo')
 
 
 config = Config()

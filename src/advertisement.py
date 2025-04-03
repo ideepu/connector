@@ -1,12 +1,10 @@
 from datetime import date
-from typing import Any, ClassVar
+from typing import Any
 
 from pydantic import Field
 
-from src.base import BaseModel, BaseModelList
-from src.config import config
+from src.base import BaseManager, BaseModel, BaseModelList
 from src.exception import InvalidInputDataException
-from src.libs.request import BaseRequest
 
 
 class Advertisement(BaseModel):
@@ -22,24 +20,19 @@ class AdvertisementList(BaseModelList[Advertisement]):
     pass
 
 
-class AdvertisementStructured(BaseModel):
+class AdvertisementSerialized(BaseModel):
     headers: list[str]
     rows: list[list[Any]]
 
 
-class AdvertisementManager(BaseModel):
-    request: ClassVar = BaseRequest(
-        base_url=f'{config.BASE_URL}/demo',
-        supported_methods=['GET'],
-    )
-
+class AdvertisementManager(BaseManager):
     @classmethod
     def get_data(cls, acount_id: str, start: date, end: date) -> AdvertisementList:
         if start > end:
             raise InvalidInputDataException(f'Start date {start} should be less than or equal to end date {end}')
 
         response = cls.request.get(url=f'/getData/{acount_id}', params={'start': str(start), 'end': str(end)})
-        # TODO:
-        # if not response or not response.get('data'):
-        #     return AdvertisementList()
+        if not (response and 'data' in response):
+            raise InvalidInputDataException('Invalid response data')
+
         return AdvertisementList.model_validate(response['data'])

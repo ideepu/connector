@@ -1,10 +1,7 @@
-from typing import ClassVar
-
 from pydantic import Field
 
-from src.base import BaseModel, BaseModelList
-from src.config import config
-from src.libs.request import BaseRequest
+from src.base import BaseManager, BaseModel, BaseModelList
+from src.exception import InvalidInputDataException
 
 
 class Account(BaseModel):
@@ -16,13 +13,10 @@ class AccountList(BaseModelList[Account]):
     pass
 
 
-class AccountManager(BaseModel):
-    request: ClassVar = BaseRequest(
-        base_url=f'{config.BASE_URL}/demo',
-        supported_methods=['GET'],
-    )
-
+class AccountManager(BaseManager):
     @classmethod
     def get_ad_accounts(cls) -> AccountList:
         response = cls.request.get(url='/adAccounts')
+        if not (response and 'ad_accounts' in response):
+            raise InvalidInputDataException('Invalid response data')
         return AccountList.model_validate(response['ad_accounts'])
