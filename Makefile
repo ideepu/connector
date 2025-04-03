@@ -2,9 +2,9 @@ SHELL := /bin/bash
 PY_VERSION := 3.12.4
 VENV_NAME := connector
 
-.PHONY: setup pre-setup setup-venv setup-poetry deps shell test run
+.PHONY: setup pre-setup setup-venv deps shell test run
 
-setup: setup-venv setup-poetry deps
+setup: setup-venv deps
 
 pre-setup:
 	@if ! command -v pyenv >/dev/null 2>&1; then \
@@ -19,25 +19,24 @@ pre-setup:
 			echo -e 'export PYENV_ROOT="${HOME}/.pyenv"' >> ~/.bashrc; \
 			echo -e 'export PATH="${HOME}/.pyenv/bin:${PATH}"' >> ~/.bashrc; \
 			echo -e 'eval "$$(pyenv init - bash)"\neval "$$(pyenv init --path)"\neval "$$(pyenv init -)"\neval "$$(pyenv virtualenv-init -)"' >> ~/.bashrc; \
+			source ~/.bashrc; \
+			exec ${SHELL}; \
 		fi; \
 	else \
 		echo "pyenv is already installed."; \
 	fi; \
 
 setup-venv:
-	source ~/.bashrc
 	pyenv install ${PY_VERSION}
 	pyenv virtualenv ${PY_VERSION} ${VENV_NAME}
 	pyenv local ${VENV_NAME}
 	pyenv rehash
 
-setup-poetry:
+deps:
 	python -m pip install --upgrade pip
 	python -m pip install poetry
 	pyenv rehash
-
-deps:
-	poetry install
+	poetry sync
 
 shell:
 	poetry run ipython
